@@ -2,118 +2,102 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# 1. Configuração da página do Streamlit
-st.set_page_config(page_title="Análise Eleitoral 2026", layout="wide")
-st.title("🗳️ Painel de Análise Eleitoral 2026")
+st.set_page_config(page_title="Dashboard Eleitoral Dinâmico 2026", layout="wide")
+st.title("📊 Painel Analítico das Eleições Gerais 2026")
 
-# 2. Criação das Abas de Navegação no Dashboard
-aba1, aba2 = st.tabs(["Fidelidade Partidária (Executivo vs Senado)", "Composição do Legislativo"])
+# Carregar base de dados
+df = pd.read_csv("dados/eleicao_2026.csv")
 
 # ==========================================
-# ABA 1: FIDELIDADE PARTIDÁRIA
+# PAINEL DE CONTROLES (SIDEBAR DINÂMICA)
 # ==========================================
+st.sidebar.header("🛠️ Filtros e Ordenação Dinâmica")
+
+# 1. Filtro Top N Estados
+top_n = st.sidebar.slider("Exibir quantos Estados no Ranking?", min_value=3, max_value=10, value=5)
+
+# 2. Critério de Ordenação dos Gráficos
+criterio_votos = st.sidebar.selectbox(
+    "Ordenar Estados com base em:",
+    ["Votos Flávio Bolsonaro", "Votos Lula", "Eleitores Aptos"]
+)
+
+mapa_criterio = {
+    "Votos Flávio Bolsonaro": "Votos_Flavio_Bolsonaro",
+    "Votos Lula": "Votos_Lula",
+    "Eleitores Aptos": "Eleitores_Aptos_Milhoes"
+}
+coluna_ordenacao = mapa_criterio[criterio_votos]
+
+# 3. Tipo de Ordem
+ordem_crescente = st.sidebar.radio("Direção da Ordem:", ["Decrescente (Maiores primeiro)", "Crescente"])
+ascendente = True if ordem_crescente == "Crescente" else False
+
+# Processamento de Dados via Pandas baseado nos Filtros da Interface
+df_filtrado = df.sort_values(by=coluna_ordenacao, ascending=ascendente).head(top_n)
+
+# ==========================================
+# ABAS DO DASHBOARD
+# ==========================================
+aba1, aba2 = st.tabs(["🏆 Rankings e Filtros Dinâmicos", "🏛️ Macroanálise de Partidos & Governadores"])
+
 with aba1:
-    st.header("Análise de Fidelidade Partidária: Presidente vs. Senado (PL)")
+    st.subheader(f"🥇 Top {top_n} Estados ordenados por: {criterio_votos}")
     
-    try:
-        df = pd.read_csv("dados/eleicao_2026.csv")
-    except FileNotFoundError:
-        st.error("Arquivo 'dados/eleicao_2026.csv' não encontrado.")
-        st.stop()
+    # Criando colunas de métricas interativas
+    m1, m2 = st.columns(2)
+    with m1:
+        total_flavio = df_filtrado["Votos_Flavio_Bolsonaro"].sum()
+        st.metric(label=f"Total Votos Flávio Bolsonaro (Nesses {top_n} estados)", value=f"{total_flavio:,}")
+    with m2:
+        total_lula = df_filtrado["Votos_Lula"].sum()
+        st.metric(label=f"Total Votos Lula (Nesses {top_n} estados)", value=f"{total_lula:,}")
 
-    # Engenharia de Dados (Pandas): Wide para Long
-    df_melted = df.melt(
-        id_vars=["Estado", "Eleitores_Aptos_Milhoes"],
-        value_vars=["Votos_Flavio_Bolsonaro", "Votos_Senadores_PL"],
-        var_name="Cargo_Partido",
-        value_name="Total_Votos"
+    # Plotando o gráfico dinâmico conforme ordenação do usuário
+    df_melted = df_filtrado.melt(
+        id_vars=["Estado"],
+        value_vars=["Votos_Flavio_Bolsonaro", "Votos_Lula"],
+        var_name="Candidato",
+        value_name="Votos"
     )
-
-    df_melted["Cargo_Partido"] = df_melted["Cargo_Partido"].map({
-        "Votos_Flavio_Bolsonaro": "Flávio Bolsonaro (Presidente)",
-        "Votos_Senadores_PL": "Candidatos ao Senado (PL)"
-    })
-
-    # Gráfico 1: Barras Agrupadas (Plotly Express)
-    fig1 = px.bar(
+    
+    fig_dinamico = px.bar(
         df_melted,
         x="Estado",
-        y="Total_Votos",
-        color="Cargo_Partido",
+        y="Votos",
+        color="Candidato",
         barmode="group",
-        title="Comparativo de Votação por Estado (Pool Nacional vs. Votos Legislativos)",
-        labels={"Total_Votos": "Total de Votos Válidos", "Cargo_Partido": "Indicador"},
-        hover_data={
-            "Estado": True,
-            "Total_Votos": ":,f",
-            "Eleitores_Aptos_Milhoes": ":.2f"
-        },
-        color_discrete_sequence=["#1A5276", "#229954"]
+        title=f"Comparativo de Votação Presidencial Dinâmica (Top {top_n})",
+        labels={"Votos": "Total de Votos", "Candidato": "Candidato"},
+        color_discrete_sequence=["#1A5276", "#922B21"]
     )
-    
-    fig1.update_layout(hoverlabel=dict(bgcolor="white", font_size=14))
-    st.plotly_chart(fig1, use_container_width=True)
+    st.plotly_chart(fig_dinamico, use_container_width=True)
 
-# ==========================================
-# ABA 2: COMPOSIÇÃO DO LEGISLATIVO (NOVO!)
-# ==========================================
 with aba2:
-    st.header("🏛️ Distribuição de Cadeiras no Congresso Nacional")
+    st.subheader("🏢 Partidos com Maior Participação e Poder nos Governos Estaduais")
     
-    # Criando colunas lado a lado no Streamlit para os dois gráficos
-    col1, col2 = st.columns(2)
+    col_gov1, col_gov2 = st.columns([1, 2])
     
-    with col1:
-        st.subheader("Câmara dos Deputados")
-        # Dados oficiais consolidados
-        dados_camara = {
-            "Partido": ["PL", "Federação Brasil da Esperança (PT/PCdoB/PV)", "União Brasil", "PP", "MDB", "PSD", "Outros"],
-            "Cadeiras": [121, 88, 59, 47, 42, 42, 114]
-        }
-        df_camara = pd.DataFrame(dados_camara)
+    with col_gov1:
+        st.markdown("**Balanço de Governadores Eleitos no 1º Turno (Base)**")
+        # Contagem dinâmica de governadores eleitos por partido usando o valor da nossa base
+        df_partidos_gov = df[df["Partido_Governador"] != "2º Turno"]["Partido_Governador"].value_counts().reset_index()
+        df_partidos_gov.columns = ["Partido", "Governadores_Eleitos"]
         
-        # Gráfico de Rosca para a Câmara com Tooltip customizado
-        fig_camara = px.pie(
-            df_camara,
-            values="Cadeiras",
+        st.dataframe(df_partidos_gov, hide_index=True)
+        
+    with col_gov2:
+        # Gráfico dinâmico dos governadores por legenda
+        fig_gov = px.pie(
+            df_partidos_gov,
+            values="Governadores_Eleitos",
             names="Partido",
+            title="Distribuição do comando dos Estados por Partido (1º Turno)",
             hole=0.4,
-            title="Bancadas na Câmara (Total: 513 Deputados)",
-            hover_data=["Cadeiras"],
-            labels={"Cadeiras": "Número de Cadeiras"},
-            color_discrete_sequence=px.colors.qualitative.Safe
+            color_discrete_sequence=px.colors.qualitative.Dark2
         )
-        fig_camara.update_traces(textinfo="percent+label")
-        fig_camara.update_layout(hoverlabel=dict(bgcolor="white", font_size=14))
-        st.plotly_chart(fig_camara, use_container_width=True)
-        
-    with col2:
-        st.subheader("Senado Federal")
-        # Dados oficiais consolidados da nova composição do Senado
-        dados_senado = {
-            "Partido": ["PL", "PT", "PSD", "MDB", "União Brasil", "PP", "Outros"],
-            "Cadeiras": [19, 6, 12, 10, 9, 7, 18]  # Foco na renovação das vagas disputadas ontem
-        }
-        df_senado = pd.DataFrame(dados_senado)
-        
-        # Gráfico de Rosca para o Senado com Tooltip customizado
-        fig_senado = px.pie(
-            df_senado,
-            values="Cadeiras",
-            names="Partido",
-            hole=0.4,
-            title="Vagas Conquistadas no Senado (Renovação de 2/3)",
-            hover_data=["Cadeiras"],
-            labels={"Cadeiras": "Senadores Eleitos"},
-            color_discrete_sequence=px.colors.qualitative.Modern
-        )
-        fig_senado.update_traces(textinfo="percent+label")
-        fig_senado.update_layout(hoverlabel=dict(bgcolor="white", font_size=14))
-        st.plotly_chart(fig_senado, use_container_width=True)
+        st.plotly_chart(fig_gov, use_container_width=True)
 
-    st.markdown("""
-    ### 🧠 Análise Geopolítica do Legislativo
-    Ao interagir com os gráficos passando o mouse sobre as fatias:
-    * **Crescimento de Bancada:** É nítida a expansão de partidos alinhados à direita e centro-direita na Câmara dos Deputados, com o PL atingindo a marca histórica de **121 cadeiras**.
-    * **Equilíbrio de Forças:** O Senado Federal apresenta uma forte bancada de oposição eleita, o que exigirá intensa articulação política para a aprovação de reformas no próximo ciclo de governo.
-    """)
+    # Exibindo os dados brutos filtrados para auditoria rápida do usuário
+    st.markdown("### 📋 Tabela de Dados Reais Filtrada (Auditável)")
+    st.dataframe(df_filtrado[["Estado", "Eleitores_Aptos_Milhoes", "Votos_Flavio_Bolsonaro", "Votos_Lula", "Governador_Eleito", "Partido_Governador"]], use_container_width=True)

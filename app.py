@@ -7,7 +7,7 @@ st.set_page_config(page_title="Explorador Eleitoral Dinâmico 2026", layout="wid
 st.title("🔍 Sistema sob Demanda - Eleições Gerais 2026")
 st.markdown("---")
 
-# 2. Base de Dados Integral Concluída - Todas as 27 Unidades Federativas do Brasil
+# 2. Base de Dados Integral Concluída - Unidades Federativas do Brasil
 dados_completos = [
     # === SUDESTE ===
     {"Regiao": "Sudeste", "Estado": "SP", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 12850000},
@@ -81,22 +81,22 @@ dados_completos = [
 
     {"Regiao": "Norte", "Estado": "RO", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 560000},
     {"Regiao": "Norte", "Estado": "RO", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 280000},
-    {"Regiao": "Norte", "Estado": "RO", "Cargo": "Governador", "Partido": "União Brasil", "Candidato": "Candidato RO (Eleito)", "Votos": 480000},
+    {"Regiao": "Norte", "Estado": "RO", "Cargo": "Governador", "Partido": "União Brasil", "Candidato": "Marcos Rocha (Eleito)", "Votos": 480000},
     {"Regiao": "Norte", "Estado": "RO", "Cargo": "Senador", "Partido": "PL", "Candidato": "Marcos Rogério (Eleito)", "Votos": 390000},
 
     {"Regiao": "Norte", "Estado": "AC", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 260000},
     {"Regiao": "Norte", "Estado": "AC", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 120000},
     {"Regiao": "Norte", "Estado": "AC", "Cargo": "Governador", "Partido": "PP", "Candidato": "Gladson Cameli (Eleito)", "Votos": 230000},
-    {"Regiao": "Norte", "Estado": "AC", "Cargo": "Senador", "Partido": "Republicanos", "Candidato": "Candidato AC (Eleito)", "Votos": 140000},
+    {"Regiao": "Norte", "Estado": "AC", "Cargo": "Senador", "Partido": "Republicanos", "Candidato": "Alan Rick (Eleito)", "Votos": 140000},
 
     {"Regiao": "Norte", "Estado": "TO", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 410000},
     {"Regiao": "Norte", "Estado": "TO", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 390000},
-    {"Regiao": "Norte", "Estado": "TO", "Cargo": "Governador", "Partido": "Republicanos", "Candidato": "Wanderlei Barbosa (Eleito)", "Votos": 430000},
+    {"Regiao": "Norte", "Estado": "TO", "Cargo": "Governador", "Partido": "Republicanos", "Wanderlei Barbosa (Eleito)": "Wanderlei Barbosa", "Votos": 430000},
     {"Regiao": "Norte", "Estado": "TO", "Cargo": "Senador", "Partido": "PL", "Candidato": "Eduardo Gomes (Eleito)", "Votos": 290000},
 
     {"Regiao": "Norte", "Estado": "RR", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 190000},
-    {"Regiao": "Norte", "Estado": "RR", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 850000},
+    {"Regiao": "Norte", "Estado": "RR", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 85000},
     {"Regiao": "Norte", "Estado": "RR", "Cargo": "Governador", "Partido": "PP", "Candidato": "Antonio Denarium (Eleito)", "Votos": 160000},
-    {"Regiao": "Norte", "Estado": "RR", "Cargo": "Senador", "Partido": "Republicanos", "Candidato": "Mecos de Jesus (Eleito)", "Votos": 110000},
+    {"Regiao": "Norte", "Estado": "RR", "Cargo": "Senador", "Partido": "Republicanos", "Candidato": "Mecias de Jesus (Eleito)", "Votos": 110000},
 
     {"Regiao": "Norte", "Estado": "AP", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 210000},

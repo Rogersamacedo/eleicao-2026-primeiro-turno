@@ -2,65 +2,88 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-st.set_page_config(page_title="Dashboard Eleitoral Dinâmico 2026", layout="wide")
-st.title("📊 Painel Analítico das Eleições Gerais 2026")
+st.set_page_config(page_title="Explorador Eleitoral 2026", layout="wide")
+st.title("🔍 Sistema sob Demanda - Eleições Gerais 2026")
 
-# Carregar base de dados
-df = pd.read_csv("dados/eleicao_2026.csv")
+# Carregar base tratada unificada
+try:
+    df = pd.read_csv("dados/eleicoes_gerais_2026.csv")
+except FileNotFoundError:
+    st.error("Rode o script de criação da base 'eleicoes_gerais_2026.csv' primeiro!")
+    st.stop()
 
 # ==========================================
-# PAINEL DE CONTROLES (SIDEBAR DINÂMICA)
+# PAINEL LATERAL DE SELEÇÃO DINÂMICA
 # ==========================================
-st.sidebar.header("🛠️ Filtros e Ordenação Dinâmica")
+st.sidebar.header("🎯 Parâmetros da Consulta")
 
-# 1. Filtro Top N Estados
-top_n = st.sidebar.slider("Exibir quantos Estados no Ranking?", min_value=3, max_value=10, value=5)
-
-# 2. Critério de Ordenação dos Gráficos
-criterio_votos = st.sidebar.selectbox(
-    "Ordenar Estados com base em:",
-    ["Votos Flávio Bolsonaro", "Votos Lula", "Eleitores Aptos"]
+# 1. Filtro Principal: Escolha do Cargo
+cargo_selecionado = st.sidebar.selectbox(
+    "Qual cargo deseja analisar?",
+    df["Cargo"].unique()
 )
 
-mapa_criterio = {
-    "Votos Flávio Bolsonaro": "Votos_Flavio_Bolsonaro",
-    "Votos Lula": "Votos_Lula",
-    "Eleitores Aptos": "Eleitores_Aptos_Milhoes"
-}
-coluna_ordenacao = mapa_criterio[criterio_votos]
+# 2. Filtro Secundário: Região Geográfica
+regiao_selecionada = st.sidebar.multiselect(
+    "Filtrar por Região (Deixe vazio para todas):",
+    options=df["Regiao"].unique(),
+    default=[]
+)
 
-# 3. Tipo de Ordem
-ordem_crescente = st.sidebar.radio("Direção da Ordem:", ["Decrescente (Maiores primeiro)", "Crescente"])
-ascendente = True if ordem_crescente == "Crescente" else False
+# Aplicando os filtros encadeados usando Pandas
+df_filtrado = df[df["Cargo"] == int(cargo_selecionado) if isinstance(cargo_selecionado, int) else df["Cargo"] == cargo_selecionado]
 
-# Processamento de Dados via Pandas baseado nos Filtros da Interface
-df_filtrado = df.sort_values(by=coluna_ordenacao, ascending=ascendente).head(top_n)
+if regiao_selecionada:
+    df_filtrado = df_filtrado[df_filtrado["Regiao"].isin(regiao_selecionada)]
+
+# 3. Ordenação Dinâmica Baseada no Gosto do Usuário
+ordem = st.sidebar.radio("Classificação dos Mais Votados:", ["Do maior para o menor", "Do menor para o maior"])
+ascendente = True if ordem == "Do menor para o maior" else False
+
+df_filtrado = df_filtrado.sort_values(by="Votos", ascending=ascendente)
 
 # ==========================================
-# ABAS DO DASHBOARD
+# APRESENTAÇÃO DOS RESULTADOS CONFORME DEMANDA
 # ==========================================
-aba1, aba2 = st.tabs(["🏆 Rankings e Filtros Dinâmicos", "🏛️ Macroanálise de Partidos & Governadores"])
+st.subheader(f"🏆 Resultados para o cargo de: {cargo_selecionado}")
 
-with aba1:
-    st.subheader(f"🥇 Top {top_n} Estados ordenados por: {criterio_votos}")
-    
-    # Criando colunas de métricas interativas
-    m1, m2 = st.columns(2)
-    with m1:
-        total_flavio = df_filtrado["Votos_Flavio_Bolsonaro"].sum()
-        st.metric(label=f"Total Votos Flávio Bolsonaro (Nesses {top_n} estados)", value=f"{total_flavio:,}")
-    with m2:
-        total_lula = df_filtrado["Votos_Lula"].sum()
-        st.metric(label=f"Total Votos Lula (Nesses {top_n} estados)", value=f"{total_lula:,}")
-
-    # Plotando o gráfico dinâmico conforme ordenação do usuário
-    df_melted = df_filtrado.melt(
-        id_vars=["Estado"],
-        value_vars=["Votos_Flavio_Bolsonaro", "Votos_Lula"],
-        var_name="Candidato",
-        value_name="Votos"
+if df_filtrado.empty:
+    st.warning("Nenhum dado encontrado para a combinação de filtros selecionada.")
+else:
+    # Mostra o Top 10 Dinâmico em Gráfico de Barras com correção de tema escuro
+    fig = px.bar(
+        df_filtrado,
+        x="Candidato",
+        y="Votos",
+        color="Partido",
+        title=f"Ranking de Votação Nominal - {cargo_selecionado}",
+        labels={"Votos": "Total de Votos Válidos", "Candidato": "Nome na Urna / Legenda"},
+        text_auto=",.0f" # Plota os números em cima das barras de forma limpa
     )
     
+    fig.update_layout(
+        template="plotly_dark",
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),
+        hoverlabel=dict(bgcolor="white", font_size=14, font_family="Arial")
+    )
+    st.plotly_chart(fig, use_container_width=True)
+
+    # Exibição dos Dados Brutos Filtrados para Cópia ou Análise de Partidos
+    col_tabela, col_partido = st.columns([2, 1])
+    
+    with col_tabela:
+        st.markdown("### 📋 Registros Encontrados")
+        st.dataframe(df_filtrado, hide_index=True, use_container_width=True)
+        
+    with col_partido:
+        st.markdown("### 📊 Participação por Partido")
+        # Soma dinamicamente os votos agrupando por partido na consulta atual do usuário
+        participacao_partido = df_filtrado.groupby("Partido")["Votos"].sum().reset_index().sort_values(by="Votos", ascending=False)
+        st.dataframe(participacao_partido, hide_index=True, use_container_width=True)
+
+    # Criando o Gráfico Dinâmico com correção de tema escuro
     fig_dinamico = px.bar(
         df_melted,
         x="Estado",
@@ -71,33 +94,18 @@ with aba1:
         labels={"Votos": "Total de Votos", "Candidato": "Candidato"},
         color_discrete_sequence=["#1A5276", "#922B21"]
     )
-    st.plotly_chart(fig_dinamico, use_container_width=True)
-
-with aba2:
-    st.subheader("🏢 Partidos com Maior Participação e Poder nos Governos Estaduais")
     
-    col_gov1, col_gov2 = st.columns([1, 2])
-    
-    with col_gov1:
-        st.markdown("**Balanço de Governadores Eleitos no 1º Turno (Base)**")
-        # Contagem dinâmica de governadores eleitos por partido usando o valor da nossa base
-        df_partidos_gov = df[df["Partido_Governador"] != "2º Turno"]["Partido_Governador"].value_counts().reset_index()
-        df_partidos_gov.columns = ["Partido", "Governadores_Eleitos"]
-        
-        st.dataframe(df_partidos_gov, hide_index=True)
-        
-    with col_gov2:
-        # Gráfico dinâmico dos governadores por legenda
-        fig_gov = px.pie(
-            df_partidos_gov,
-            values="Governadores_Eleitos",
-            names="Partido",
-            title="Distribuição do comando dos Estados por Partido (1º Turno)",
-            hole=0.4,
-            color_discrete_sequence=px.colors.qualitative.Dark2
+    # FIX: Força o Plotly a usar fontes claras e remove a opacidade da legenda
+    fig_dinamico.update_layout(
+        template="plotly_dark",  # Faz o gráfico adotar nativamente o modo escuro
+        paper_bgcolor="rgba(0,0,0,0)",  # Mantém o fundo transparente integrado ao Streamlit
+        plot_bgcolor="rgba(0,0,0,0)",
+        font=dict(color="white"),  # Força todos os textos (eixos e legenda) para branco
+        legend=dict(
+            bgcolor="rgba(30, 30, 30, 0.8)",  # Adiciona um fundo sólido escuro na legenda
+            bordercolor="gray",
+            borderwidth=1
         )
-        st.plotly_chart(fig_gov, use_container_width=True)
-
-    # Exibindo os dados brutos filtrados para auditoria rápida do usuário
-    st.markdown("### 📋 Tabela de Dados Reais Filtrada (Auditável)")
-    st.dataframe(df_filtrado[["Estado", "Eleitores_Aptos_Milhoes", "Votos_Flavio_Bolsonaro", "Votos_Lula", "Governador_Eleito", "Partido_Governador"]], use_container_width=True)
+    )
+    
+    st.plotly_chart(fig_dinamico, use_container_width=True)

@@ -34,7 +34,7 @@ dados_completos = [
 
     {"Regiao": "Sul", "Estado": "SC", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 2410000},
     {"Regiao": "Sul", "Estado": "SC", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 1150000},
-    {"Regiao": "Sul", "SC", "Cargo": "Governador", "Partido": "PL", "Candidato": "Jorginho Mello (Eleito)", "Votos": 2942386},
+    {"Regiao": "Sul", "Estado": "SC", "Cargo": "Governador", "Partido": "PL", "Candidato": "Jorginho Mello (Eleito)", "Votos": 2942386},
 
     # --- NORDESTE ---
     {"Regiao": "Nordeste", "Estado": "BA", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 4850000},
@@ -66,7 +66,7 @@ ascendente = True if ordem_votos == "Do menor para o maior" else False
 
 # Slider dinâmico para limitar o Top N do gráfico na tela
 max_linhas = len(df[df["Cargo"] == cargo_selecionado])
-top_n = st.sidebar.slider("Quantidade máxima de registros na tela:", min_value=2, max_value=max_linhas, value=min(5, max_linhas))
+top_n = st.sidebar.slider("Quantidade máxima de registros na tela:", min_value=1, max_value=max_linhas, value=min(5, max_linhas))
 
 # ==========================================
 # FILTRAGEM ATIVA VIA PANDAS
@@ -87,7 +87,7 @@ st.subheader(f"🏆 Resultados em Tempo Real: {cargo_selecionado}")
 if df_filtrado.empty:
     st.warning("Nenhum dado encontrado para os filtros selecionados.")
 else:
-    # Gráfico de Barras Dinâmico com correção estrita de cor de texto para dark/light mode
+    # Gráfico de Barras Dinâmico com correção de fontes para tema escuro
     fig = px.bar(
         df_filtrado,
         x="Candidato",
@@ -98,7 +98,6 @@ else:
         text_auto=",.0f"
     )
     
-    # Customização das propriedades de Hover/Tooltip e Layout adaptativo
     fig.update_layout(
         template="plotly_dark",
         paper_bgcolor="rgba(0,0,0,0)",

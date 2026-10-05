@@ -1,8 +1,11 @@
 # 🗳️ Painel de Análise Eleitoral 2026: Presidente vs. Senado
 
-Este projeto consiste em um dashboard interativo desenvolvido para analisar e correlacionar os dados oficiais do primeiro turno das Eleições Gerais de 2026 (ocorridas em 4 de outubro de 2026). O objetivo principal é avaliar a taxa de fidelidade partidária vertical e investigar os fatores matemáticos (como o voto duplo) que causam discrepâncias entre as votações majoritárias para o Executivo e o Legislativo.
+[![Streamlit App](https://streamlit.io)](https://eleicao-2026-primeiro-turno-kypqtgd3htknewraaws384.streamlit.app/)
 
-O projeto foi construído utilizando práticas modernas de engenharia de dados, tratamento de dados em memória e renderização de componentes visuais avançados.
+> 🚀 **Acesse o Dashboard Online:** [Clique aqui para interagir com o painel ao vivo](https://eleicao-2026-primeiro-turno-kypqtgd3htknewraaws384.streamlit.app/)
+
+Este projeto consiste em um dashboard interativo desenvolvido para analisar e correlacionar os dados oficiais do primeiro turno das Eleições Gerais de 2026...
+.
 
 ## 🚀 Tecnologias Utilizadas
 

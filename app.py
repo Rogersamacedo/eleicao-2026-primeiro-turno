@@ -91,7 +91,7 @@ dados_completos = [
 
     {"Regiao": "Norte", "Estado": "TO", "Cargo": "Presidente", "Partido": "PT", "Candidato": "Lula", "Votos": 410000},
     {"Regiao": "Norte", "Estado": "TO", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 390000},
-    {"Regiao": "Norte", "Estado": "TO", "Cargo": "Governador", "Partido": "Republicanos", "Wanderlei Barbosa (Eleito)": "Wanderlei Barbosa", "Votos": 430000},
+    {"Regiao": "Norte", "Estado": "TO", "Cargo": "Governador", "Partido": "Republicanos", "Candidato": "Wanderlei Barbosa (Eleito)", "Votos": 430000},
     {"Regiao": "Norte", "Estado": "TO", "Cargo": "Senador", "Partido": "PL", "Candidato": "Eduardo Gomes (Eleito)", "Votos": 290000},
 
     {"Regiao": "Norte", "Estado": "RR", "Cargo": "Presidente", "Partido": "PL", "Candidato": "Flávio Bolsonaro", "Votos": 190000},
